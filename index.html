@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trinity Community Jumping Game</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let img = new Image();
+        img.src = './images/mascot.png';  // Ensure the image path is correct
+        let img2 = new Image();
+        img2.src = './images/mascot2.png';
+        let x = 100;
+        let y = 300;
+        let jumpHeight = -8;
+        let gravity = 0.5;
+        let velocity = 0;
+        let isJumping = false;
+        let speed = 5;
+        let score = 0;
+        let obstacleX = 350;
+        let obstacleY = 300; // Adjusted to match the new y position
+        let delayFrames = Math.floor(Math.random() * (90 - 60) + 60);
+        let lastResetTime = 0;
+
+        img.onload = function() {
+            requestAnimationFrame(draw);
+        };
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (isJumping) {
+                y += velocity;
+                velocity += gravity;
+                if (y >= 300) {
+                    y = 300;
+                    isJumping = false;
+                    velocity = 0;
+                }
+            }
+
+            ctx.drawImage(img, x, y, 50, 50);
+
+            if (frameCount - lastResetTime >= delayFrames) {
+                obstacleX -= speed;
+                if (obstacleX < 50) {
+                    obstacleX = canvas.width;
+                    delayFrames = Math.floor(Math.random() * (90 - 60) + 60);
+                    lastResetTime = frameCount;
+                    score++;
+                }
+            }
+
+            drawObstacle(obstacleX, obstacleY);
+            drawGround();
+
+            if (checkCollision(x, y, obstacleX, obstacleY)) {
+                ctx.fillStyle = '#f00';
+                ctx.font = '30px Arial';
+                ctx.fillText('GAME OVER', 100, 200);
+                return;
+            }
+
+            ctx.fillStyle = '#000';
+            ctx.font = '30px Arial';
+            ctx.fillText('BANANA JUMP', 100, 100);
+            ctx.font = '25px Arial';
+            ctx.fillText('Score: ' + score, 130, 250);
+
+            requestAnimationFrame(draw);
+        }
+
+        function drawObstacle(x, y) {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x, y, 20, 20);
+        }
+
+        function drawGround() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(50, 350, 300, 2);
+        }
+
+        function checkCollision(bananaX, bananaY, obstacleX, obstacleY) {
+            let bananaWidth = 50;
+            let bananaHeight = 50;
+            let obstacleWidth = 20;
+            let obstacleHeight = 20;
+            return (
+                bananaX + bananaWidth / 2 > obstacleX &&
+                bananaX - bananaWidth / 2 < obstacleX + obstacleWidth &&
+                bananaY + bananaHeight / 2 > obstacleY &&
+                bananaY - bananaHeight / 2 < obstacleY + obstacleHeight
+            );
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if ((event.keyCode === 32 || event.keyCode === 38) && !isJumping) {
+                velocity = jumpHeight;
+                isJumping = true;
+            }
+        });
+
+        let frameCount = 0;
+        setInterval(() => {
+            frameCount++;
+        }, 1000 / 60);  // Increment the frame count at 60 FPS
+    </script>
+</body>
+</html>
